@@ -34,7 +34,9 @@ jobs:
             echo "::error ::Failed to generate changelog"
             exit 1
           fi
-          echo ${{ steps.github_release.outputs.changelog }}
+          cat << EOF
+          ${{ steps.github_release.outputs.changelog }}
+          EOF
 
       - name: Print changelog from file
         run: cat CHANGELOG-tmp
