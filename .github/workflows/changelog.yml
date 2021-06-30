@@ -1,0 +1,31 @@
+name: Test changelog
+
+on:
+  workflow_dispatch:
+    inputs:
+      # TODO: Move to secrets
+      token:
+        description: 'Github api token'
+        required: true
+
+env:
+  GITHUB_TOKEN: ${{ github.event.inputs.token }}
+
+jobs:
+  steps:
+    - name: Build Changelog
+      id: github_release
+      uses: mikepenz/release-changelog-builder-action@v1
+      with:
+        outputFile: CHANGELOG-tmp
+
+    - name: Print Changelog from output
+      run: |
+        if [ ${{ steps.github_release.outputs.failed }} = true]; then
+          echo "::error ::Failed to generate changelog"
+          exit 1
+        fi
+        echo ${{ steps.github_release.outputs.changelog }}
+
+    - name: Print changelog from file
+        cat CHANGELOG-tmp
