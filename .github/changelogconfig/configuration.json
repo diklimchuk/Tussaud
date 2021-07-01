@@ -1,32 +1,32 @@
 {
   "categories": [
     {
-      "title": "## Features",
+      "title": "### Features",
       "labels": [
         "enhancement"
       ]
     },
     {
-      "title": "## Changelog",
+      "title": "### Changelog",
       "labels": [
         "bug"
       ]
     },
     {
-      "title": "## Dependency Updates",
+      "title": "### Dependency Updates",
       "labels": [
         "dependencies"
       ]
     },
     {
-      "title": "## Housekeeping & Refactoring",
+      "title": "### Housekeeping & Refactoring",
       "labels": [
         "housekeeping"
       ]
     }
   ],
   "sort": "ASC",
-  "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
-  "pr_template": "- ${{TITLE}}\n   - PR: #${{NUMBER}}",
-  "empty_template": "- no changes"
+  "template": "${{CHANGELOG}}\n\n<details>\n<summary>###Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
+  "pr_template": "- ${{TITLE}}. See: #${{NUMBER}}",
+  "empty_template": "- No changes"
 }
