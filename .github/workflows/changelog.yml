@@ -7,9 +7,13 @@ on:
       token:
         description: 'Github api token'
         required: true
+      version:
+        description: 'Release version'
+        required: true
 
 env:
   GITHUB_TOKEN: ${{ github.event.inputs.token }}
+  NEW_VERSION: ${{ github.event.inputs.version }}
 
 jobs:
   build_changelog:
@@ -18,13 +22,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Add tag
+        run: git tag "$NEW_VERSION"
+
       - name: Build Changelog
         id: github_release
         uses: mikepenz/release-changelog-builder-action@v1
         with:
           outputFile: CHANGELOG-tmp
-          fromTag: 1.0.8
-          toTag: 1.1.0
+          toTag: "${{ env.NEW_VERSION }}"
           failOnError: true
           configuration: .github/changelogconfig/configuration.json
           owner: vivid-money

@@ -3,31 +3,19 @@
     {
       "title": "## Features",
       "labels": [
-        "feature"
+        "enhancement"
       ]
     },
     {
-      "title": "## Bugfixes",
+      "title": "## Bug fixes",
       "labels": [
         "bug"
       ]
     },
     {
-      "title": "## Tests",
-      "labels": [
-        "test"
-      ]
-    },
-    {
-      "title": "## Dependencies",
+      "title": "## Dependency updates",
       "labels": [
         "dependencies"
-      ]
-    },
-    {
-      "title": "## Other",
-      "labels": [
-        "other"
       ]
     }
   ],
