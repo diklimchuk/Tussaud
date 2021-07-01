@@ -7,15 +7,21 @@
       ]
     },
     {
-      "title": "## Bug fixes",
+      "title": "## Changelog",
       "labels": [
         "bug"
       ]
     },
     {
-      "title": "## Dependency updates",
+      "title": "## Dependency Updates",
       "labels": [
         "dependencies"
+      ]
+    },
+    {
+      "title": "## Housekeeping & Refactoring",
+      "labels": [
+        "housekeeping"
       ]
     }
   ],

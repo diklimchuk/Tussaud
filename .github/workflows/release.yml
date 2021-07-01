@@ -70,7 +70,7 @@ jobs:
         id: github_release
         uses: mikepenz/release-changelog-builder-action@v1
         with:
-          fromTag: 0.0.1
+          fromTag: 1.0.0
           toTag: HEAD
           failOnError: true
           configuration: .github/changelogconfig/configuration.json
