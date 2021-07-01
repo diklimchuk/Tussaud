@@ -30,6 +30,7 @@ jobs:
         uses: mikepenz/release-changelog-builder-action@v1
         with:
           outputFile: CHANGELOG-tmp
+          fromTag: 0.0.5
           toTag: HEAD
           failOnError: true
           configuration: .github/changelogconfig/configuration.json
