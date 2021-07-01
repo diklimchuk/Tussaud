@@ -3,19 +3,12 @@ name: Publish library release
 on:
   workflow_dispatch:
     inputs:
-      # TODO: Move to secrets
-      token:
-        description: 'Github api token'
-        required: true
       version:
         description: 'Release version'
         required: true
 
 env:
   NEW_VERSION: ${{ github.event.inputs.version }}
-  # TODO: use secrets for providing token
-  # GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-  GITHUB_TOKEN: ${{ github.event.inputs.token }}
 
 jobs:
   validate:
@@ -28,7 +21,7 @@ jobs:
         run: ./.github/sh/validate_main_branch.sh
 
       - name: Validate token format
-        run: ./.github/sh/validate_github_token_format.sh "$GITHUB_TOKEN"
+        run: ./.github/sh/validate_github_token_format.sh "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Validate version
         run: |
@@ -69,7 +62,7 @@ jobs:
       - name: Release
         uses: ncipollo/release-action@v1
         with:
-          token: "${{ env.GITHUB_TOKEN }}"
+          token: "${{ secrets.GITHUB_TOKEN }}"
           tag: "${{ env.NEW_VERSION }}"
           body: This is an Elmslie release
           artifacts: "elmslie-plugin/build/distributions/*.zip"
