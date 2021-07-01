@@ -22,14 +22,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Create tag
-        run: git tag "$NEW_VERSION"
-
       - name: Build Changelog
         id: github_release
         uses: mikepenz/release-changelog-builder-action@v1
         with:
-          outputFile: CHANGELOG-tmp
           fromTag: 0.0.5
           toTag: HEAD
           failOnError: true
@@ -46,6 +42,3 @@ jobs:
           cat << EOF
           ${{ steps.github_release.outputs.changelog }}
           EOF
-
-      - name: Print changelog from file
-        run: cat CHANGELOG-tmp
