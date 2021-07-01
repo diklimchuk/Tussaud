@@ -66,10 +66,21 @@ jobs:
           file_pattern: gradle.properties
           skip_dirty_check: true
 
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v1
+        with:
+          fromTag: 0.0.1
+          toTag: HEAD
+          failOnError: true
+          configuration: .github/changelogconfig/configuration.json
+          owner: vivid-money
+          repo: elmslie
+
       - name: Release
         uses: ncipollo/release-action@v1
         with:
           token: "${{ env.GITHUB_TOKEN }}"
           tag: "${{ env.NEW_VERSION }}"
-          body: This is an Elmslie release
+          body: ${{ steps.github_release.outputs.changelog }}
           artifacts: "elmslie-plugin/build/distributions/*.zip"
