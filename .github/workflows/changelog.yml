@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Add tag
+      - name: Create tag
         run: git tag "$NEW_VERSION"
 
       - name: Build Changelog
@@ -30,7 +30,7 @@ jobs:
         uses: mikepenz/release-changelog-builder-action@v1
         with:
           outputFile: CHANGELOG-tmp
-          toTag: "${{ env.NEW_VERSION }}"
+          toTag: HEAD
           failOnError: true
           configuration: .github/changelogconfig/configuration.json
           owner: vivid-money
