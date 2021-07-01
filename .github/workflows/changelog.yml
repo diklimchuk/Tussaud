@@ -27,6 +27,8 @@ jobs:
           toTag: 1.1.0
           failOnError: true
           configuration: .github/changelogconfig/configuration.json
+          owner: vivid-money
+          repo: elmslie
 
       - name: Print Changelog from output
         run: |
