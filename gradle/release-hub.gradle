@@ -5,11 +5,11 @@ releasesHub {
     dependenciesClassNames = ["dependencies.gradle"]
     pullRequestEnabled = true
     pullRequestLabels = ["dependencies"]
-    pullRequestReviewers = ["diklimchuk"]
+//    pullRequestReviewers = ["diklimchuk"]
     headBranchPrefix = "update_dependencies/"
     baseBranch = "main"
     gitHubUserEmail = "klimchuk.daniil@gmail.com"
-    gitHubRepositoryOwner = "vivid-money"
+    gitHubRepositoryOwner = "diklimchuk"
     gitHubRepositoryName = "elmslie"
     gitHubWriteToken = System.env.GITHUB_TOKEN
 }
