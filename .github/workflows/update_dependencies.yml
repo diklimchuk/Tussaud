@@ -4,7 +4,7 @@ on:
   schedule:
     # min hour month_day month week_day
     - cron: '29 1 * * *'
-
+  workflow_dispatch:
 
 jobs:
   update_dependencies:
