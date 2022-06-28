@@ -139,6 +139,7 @@ class ElmStoreTest {
         store.accept(Event(value = 1))
         store.effects(effects::add)
         store.accept(Event(value = -1))
+        store.effects(effects::add)
 
         assertEquals(
             mutableListOf(

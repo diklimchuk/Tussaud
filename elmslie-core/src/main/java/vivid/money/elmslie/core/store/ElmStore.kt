@@ -60,12 +60,12 @@ class ElmStore<Event : Any, State : Any, Effect : Any, Command : Any>(
 
     override fun effects(onEffectEmission: (Effect) -> Unit): Disposable {
         dispatchBuffer(onEffectEmission)
-        startBuffering()
+        stopBuffering()
         effectListeners += onEffectEmission
         return Disposable {
             effectListeners -= onEffectEmission
             effectBuffer.clear()
-            if (isStarted && effectListeners.isEmpty()) stopBuffering()
+            if (isStarted && effectListeners.isEmpty()) startBuffering()
         }
     }
 
