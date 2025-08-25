@@ -1,0 +1,41 @@
+name: Code quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name : Run api compatibility check
+        run: ./gradlew apiCheck
+
+      - name: Run spotless
+        run: ./gradlew spotlessCheck
+
+      - name: Run detekt
+        run: ./gradlew detekt
+
+      - name: Build project
+        run: ./gradlew assemble
+
+      - name: Run unit tests
+        run: ./gradlew test
+
+      - name: Run android lint
+        run: ./gradlew lint
