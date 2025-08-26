@@ -27,8 +27,8 @@ android {
 }
 
 dependencies {
-  implementation(projects.elmslieAndroid)
-  implementation(projects.elmslieCore)
+  implementation(projects.tussaudAndroid)
+  implementation(projects.tussaudCore)
 
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.fragmentKtx)

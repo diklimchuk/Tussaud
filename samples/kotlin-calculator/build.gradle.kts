@@ -6,9 +6,9 @@ plugins {
 }
 
 dependencies {
-  implementation(projects.elmslieCore)
+  implementation(projects.tussaudCore)
   implementation(libs.kotlinx.coroutinesCore)
 
-  testImplementation(projects.elmslieCore)
+  testImplementation(projects.tussaudCore)
   testImplementation(libs.kotlinx.coroutinesTest)
 }

@@ -16,7 +16,7 @@ elmsliePublishing {
 }
 
 dependencies {
-  api(projects.elmslieCore)
+  api(projects.tussaudCore)
 
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.lifecycle.runtime)
