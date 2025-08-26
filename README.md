@@ -4,6 +4,8 @@
 [![Maven Central Version](https://img.shields.io/maven-central/v/money.vivid.elmslie/elmslie-core)](https://central.sonatype.com/artifact/money.vivid.elmslie/elmslie-core)
 [![License badge](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+Tussaud is the architecture which allows to create The Unified Systematically Structured And Uniform Divisions
+
 Elmslie is a minimalistic reactive implementation of TEA/ELM written in kotlin with java support.  
 Named after [George Grant Elmslie](https://en.wikipedia.org/wiki/George_Grant_Elmslie), a Scottish-born architect.
 
