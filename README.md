@@ -6,6 +6,8 @@
 
 Tussaud is the architecture which allows to create The Unified Systematically Structured And Uniform Divisions
 
+It allows you to split the program into blocks that don't have a problem of asynchronicity that communicate synchronously
+
 Elmslie is a minimalistic reactive implementation of TEA/ELM written in kotlin with java support.  
 Named after [George Grant Elmslie](https://en.wikipedia.org/wiki/George_Grant_Elmslie), a Scottish-born architect.
 
