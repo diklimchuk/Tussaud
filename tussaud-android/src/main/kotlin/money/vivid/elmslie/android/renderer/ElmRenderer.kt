@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import money.vivid.elmslie.core.config.ElmslieConfig
+import money.vivid.elmslie.core.config.TussaudConfig
 import money.vivid.elmslie.core.plot.CoroutinesElmPlot
 import money.vivid.elmslie.core.plot.Plot
 
@@ -22,8 +22,8 @@ class ElmRenderer<State : Any, Effect : Any>(
 ) {
 
     private val plot = CoroutinesElmPlot(internalPlot)
-    private val logger = ElmslieConfig.logger
-    private val elmDispatcher: CoroutineDispatcher = ElmslieConfig.elmDispatcher
+    private val logger = TussaudConfig.logger
+    private val elmDispatcher: CoroutineDispatcher = TussaudConfig.elmDispatcher
     private val canRender
         get() = lifecycle.currentState.isAtLeast(STARTED)
 

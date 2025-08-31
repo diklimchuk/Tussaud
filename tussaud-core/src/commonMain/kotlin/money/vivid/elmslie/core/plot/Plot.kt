@@ -1,5 +1,7 @@
 package money.vivid.elmslie.core.plot
 
+import kotlin.reflect.KClass
+
 interface PlotStateObserver<State : Any> {
     fun onStateChanged(state: State?)
 }
@@ -11,6 +13,7 @@ interface PlotEffectObserver<Effect : Any> {
 interface Plot<State : Any, Event : Any, Effect : Any> {
 
     val key: String
+
     /**
      * Returns the flow of [State]. Internally the store keeps the last emitted state value, so each
      * new subscribers will get it.
@@ -36,7 +39,7 @@ interface Plot<State : Any, Event : Any, Effect : Any> {
     fun removeEffectObserver(observer: PlotEffectObserver<Effect>)
 
     /** Sends a new [Event] for the store. */
-    fun accept(event: Event)
+    fun accept(event: Event): Pair<State?, List<Effect>>
 
     /**
      * Stops all operations inside the store and cancels coroutines scope. After this any calls of
@@ -44,3 +47,4 @@ interface Plot<State : Any, Event : Any, Effect : Any> {
      */
     fun stop()
 }
+

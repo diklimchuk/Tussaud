@@ -16,6 +16,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutinesCore)
+                implementation(libs.atomicfu)
             }
         }
         val commonTest by getting {

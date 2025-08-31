@@ -20,16 +20,15 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import money.vivid.elmslie.core.config.ElmslieConfig
+import money.vivid.elmslie.core.config.TussaudConfig
 import money.vivid.elmslie.core.plot.CoroutinesElmPlot
 import money.vivid.elmslie.core.plot.ElmPlot
 import money.vivid.elmslie.core.plot.ElmScheme
 import money.vivid.elmslie.core.plot.NoOpPerformer
 import money.vivid.elmslie.core.plot.NoOpScheme
 import money.vivid.elmslie.core.plot.Performer
-import money.vivid.elmslie.core.plot.SchemePart
 import money.vivid.elmslie.core.plot.dsl.SchemePartBuilder
-import money.vivid.elmslie.core.testutil.model.Command
+import money.vivid.elmslie.core.testutil.model.Instruction
 import money.vivid.elmslie.core.testutil.model.Effect
 import money.vivid.elmslie.core.testutil.model.Event
 import money.vivid.elmslie.core.testutil.model.State
@@ -40,7 +39,7 @@ class ElmStoreTest {
     @BeforeTest
     fun beforeEach() {
         val testDispatcher = StandardTestDispatcher()
-        ElmslieConfig.elmDispatcher = testDispatcher
+        TussaudConfig.elmDispatcher = testDispatcher
         Dispatchers.setMain(testDispatcher)
     }
 
@@ -61,18 +60,18 @@ class ElmStoreTest {
     @Test
     fun `Should stop getting state updates when the store is stopped`() = runTest {
         val performer =
-            object : Performer<Command, Event>() {
-                override fun execute(instruction: Command): Flow<Event> =
+            object : Performer<Instruction, Event>() {
+                override fun execute(instruction: Instruction): Flow<Event> =
                     flow { emit(Event()) }.onEach { delay(1000) }
             }
 
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     state { State(value = state.value + 1) }
-                    instructions { +Command() }
+                    instructions { +Instruction() }
                 }
             },
             performer = performer,
@@ -100,8 +99,8 @@ class ElmStoreTest {
     @Test
     fun `Should update state when event is received`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     state { State(value = event.value) }
@@ -119,8 +118,8 @@ class ElmStoreTest {
     @Test
     fun `Should not update state when it's equal to previous one`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     state { State(value = event.value) }
@@ -146,8 +145,8 @@ class ElmStoreTest {
     @Test
     fun `Should collect all emitted effects`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects { +Effect(value = event.value) }
@@ -174,8 +173,8 @@ class ElmStoreTest {
     @Test
     fun `Should skip the effect which is emitted before subscribing to effects`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects { +Effect(value = event.value) }
@@ -197,8 +196,8 @@ class ElmStoreTest {
     @Test
     fun `Should collect all effects emitted once per time`() = runTest {
         val store = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects {
@@ -227,8 +226,8 @@ class ElmStoreTest {
     @Test
     fun `Should collect all emitted effects by all collectors`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects { +Effect(value = event.value) }
@@ -265,8 +264,8 @@ class ElmStoreTest {
     @Test
     fun `Should collect duplicated effects`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects { +Effect(value = event.value) }
@@ -286,16 +285,16 @@ class ElmStoreTest {
 
     @Test
     fun `Should collect event caused by actor`() = runTest {
-        val performer = object : Performer<Command, Event>() {
-            override fun execute(instruction: Command): Flow<Event> = flowOf(Event(instruction.value))
+        val performer = object : Performer<Instruction, Event>() {
+            override fun execute(instruction: Instruction): Flow<Event> = flowOf(Event(instruction.value))
         }
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     state { copy(value = event.value) }
-                    instructions { +Command(event.value - 1).takeIf { event.value > 0 } }
+                    instructions { +Instruction(event.value - 1).takeIf { event.value > 0 } }
                 }
             },
             performer = performer,
@@ -323,7 +322,7 @@ class ElmStoreTest {
     }
 
     private fun plot(
-        scheme: ElmScheme<State, Event, Effect, Command> = NoOpScheme(),
-        performer: Performer<Command, Event> = NoOpPerformer(),
+        scheme: ElmScheme<State, Event, Effect, Instruction> = NoOpScheme(),
+        performer: Performer<Instruction, Event> = NoOpPerformer(),
     ) = CoroutinesElmPlot(ElmPlot(scheme, performer))
 }

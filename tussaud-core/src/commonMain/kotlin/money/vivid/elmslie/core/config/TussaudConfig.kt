@@ -7,7 +7,7 @@ import money.vivid.elmslie.core.logger.strategy.IgnoreLog
 import money.vivid.elmslie.core.utils.ElmDispatcher
 import kotlin.concurrent.Volatile
 
-object ElmslieConfig {
+object TussaudConfig {
 
     @Volatile
     var logger: ElmslieLogger = ElmslieLogConfiguration().apply { always(IgnoreLog) }.build()

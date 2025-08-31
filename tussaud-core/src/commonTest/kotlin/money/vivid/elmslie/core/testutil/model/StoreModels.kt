@@ -6,4 +6,4 @@ data class State(val value: Int = 0)
 
 data class Effect(val value: Int = 0)
 
-data class Command(val value: Int = 0)
+data class Instruction(val value: Int = 0)

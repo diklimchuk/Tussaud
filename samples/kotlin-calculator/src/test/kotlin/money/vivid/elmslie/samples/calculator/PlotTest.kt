@@ -13,7 +13,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import money.vivid.elmslie.core.config.ElmslieConfig
+import money.vivid.elmslie.core.config.TussaudConfig
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class PlotTest {
@@ -21,7 +21,7 @@ internal class PlotTest {
   @BeforeTest
   fun beforeEach() {
     val testDispatcher = StandardTestDispatcher()
-    ElmslieConfig.elmDispatcher = testDispatcher
+    TussaudConfig.elmDispatcher = testDispatcher
     Dispatchers.setMain(testDispatcher)
   }
 

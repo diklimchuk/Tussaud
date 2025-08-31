@@ -7,28 +7,31 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import money.vivid.elmslie.core.ElmScope
-import money.vivid.elmslie.core.config.ElmslieConfig
+import money.vivid.elmslie.core.config.TussaudConfig
 import money.vivid.elmslie.core.utils.resolvePlotKey
 import kotlin.concurrent.Volatile
 
 class SingleDispatcherSchemeElmPlot<State : Any, Event : Any, Effect : Any>(
     private val plot: Plot<State, Event, Effect>,
-    dispatcher: CoroutineDispatcher = ElmslieConfig.elmDispatcher,
+    dispatcher: CoroutineDispatcher = TussaudConfig.elmDispatcher,
 ) : Plot<State, Event, Effect> by plot {
 
     private val scope = CoroutineScope(
         context = dispatcher +
                 SupervisorJob() +
                 CoroutineExceptionHandler { context, exception ->
-                    ElmslieConfig.logger.fatal("Unhandled error: $exception")
+                    TussaudConfig.logger.fatal("Unhandled error: $exception")
                 } +
                 CoroutineName("${key}SingleDispatcherWrapperPlot")
     )
@@ -62,15 +65,7 @@ class CoroutinesElmPlot<State : Any, Event : Any, Effect : Any>(
     val nullableStates = internalStates.asStateFlow()
     private val internalEffects = MutableStateFlow<Effect?>(null)
     val effects = internalEffects
-        .onEach {
-            this@CoroutinesElmPlot
-            it
-        }
         .filterNotNull()
-        .onEach {
-            this@CoroutinesElmPlot
-            it
-        }
 
     init {
         addStateObserver(this)
@@ -89,7 +84,26 @@ class CoroutinesElmPlot<State : Any, Event : Any, Effect : Any>(
         removeStateObserver(this)
         removeEffectObserver(this)
     }
+
+    inline fun <reified ActualEffect : Effect> acceptWithResult(
+        event: Event,
+    ): ActualEffect {
+        return accept(event)
+            .second
+            .filterIsInstance<ActualEffect>()
+            .also { check(it.size == 1) }
+            .first()
+    }
+
+    /**
+     * Allows to send an event and to observe the result after that
+     */
+    inline fun <reified ObservedEffect : Effect> acceptAndObserve(event: Event): Flow<ObservedEffect> {
+        accept(event)
+        return effects.filterIsInstance()
+    }
 }
+
 
 @Suppress("TooGenericExceptionCaught")
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -97,9 +111,10 @@ class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
     private val scheme: ElmScheme<State, Event, Effect, Instruction>,
     private val performer: Performer<Instruction, Event>,
     override val key: String = resolvePlotKey(scheme),
+    private val performerResultDispatcher: CoroutineDispatcher = TussaudConfig.elmDispatcher,
 ) : Plot<State, Event, Effect> {
 
-    private val logger = ElmslieConfig.logger
+    private val logger = TussaudConfig.logger
 
     /** Store's scope. Active for the lifetime of store. */
     private val scope = ElmScope("${key}Scope")
@@ -133,7 +148,17 @@ class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
         effectObservers.add(observer)
     }
 
-    override fun accept(event: Event) {
+    inline fun <reified ActualEffect : Effect> acceptWithResult(
+        event: Event,
+    ): ActualEffect {
+        return accept(event)
+            .second
+            .filterIsInstance<ActualEffect>()
+            .also { check(it.size == 1) }
+            .first()
+    }
+
+    override fun accept(event: Event): Pair<State?, List<Effect>> {
         try {
             val oldState = currentState
             logger.debug(message = "New event: $event", tag = key)
@@ -141,8 +166,10 @@ class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
             currentState = state
             effects.forEach { effect -> dispatchEffect(effect) }
             commands.forEach { executeCommand(it) }
+            return state to effects
         } catch (t: Throwable) {
             logger.fatal(message = "You must handle all errors inside reducer", tag = key, error = t)
+            return currentState to emptyList()
         }
     }
 
@@ -169,6 +196,7 @@ class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
                         error = throwable,
                     )
                 }
+                .flowOn(performerResultDispatcher)
                 .collect { accept(it) }
         }
     }

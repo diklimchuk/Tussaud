@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import money.vivid.elmslie.core.config.ElmslieConfig
+import money.vivid.elmslie.core.config.TussaudConfig
 import money.vivid.elmslie.core.switcher.Switcher
 
 abstract class Performer<Instruction : Any, Result : Any> {
@@ -16,7 +16,7 @@ abstract class Performer<Instruction : Any, Result : Any> {
     private val switchers = mutableMapOf<Any, Switcher>()
     private val mutex = Mutex()
 
-    /** Executes a command. This method is performed on the [ElmslieConfig.elmDispatcher]. */
+    /** Executes a command. This method is performed on the [TussaudConfig.elmDispatcher]. */
     abstract fun execute(instruction: Instruction): Flow<Result>
 
     protected fun <T : Any> Flow<T>.mapEvents(
@@ -77,6 +77,6 @@ abstract class Performer<Instruction : Any, Result : Any> {
     private fun Throwable.logErrorEvent(
         onError: (Throwable) -> Result?
     ): Result? {
-        return onError(this).also { ElmslieConfig.logger.nonfatal(error = this) }
+        return onError(this).also { TussaudConfig.logger.nonfatal(error = this) }
     }
 }

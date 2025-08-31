@@ -10,6 +10,7 @@ internal fun plotFactory(
     plot = ElmPlot(
         scheme = TimerScheme,
         performer = TimerPerformer,
+        performerResultDispatcher = Dispatchers.Main,
     ).also {
         it.accept(Event.Input.Init(id))
     },

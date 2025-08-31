@@ -1,7 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 pluginManagement {
-    includeBuild("../build-logic")
+    includeBuild("../Build-logic")
     repositories {
         gradlePluginPortal()
         google()
@@ -16,7 +16,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
     }
-    versionCatalogs.create("libs").from(files("../build-logic/libs.versions.toml"))
+    versionCatalogs.create("libs").from(files("../Build-logic/libs.versions.toml"))
 }
 
 rootProject.name = "Elmslie"

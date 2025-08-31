@@ -14,16 +14,15 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import money.vivid.elmslie.core.config.ElmslieConfig
+import money.vivid.elmslie.core.config.TussaudConfig
 import money.vivid.elmslie.core.plot.ElmPlot
 import money.vivid.elmslie.core.plot.ElmScheme
 import money.vivid.elmslie.core.plot.NoOpPerformer
 import money.vivid.elmslie.core.plot.NoOpScheme
 import money.vivid.elmslie.core.plot.Performer
-import money.vivid.elmslie.core.plot.SchemePart
 import money.vivid.elmslie.core.plot.dsl.SchemePartBuilder
 import money.vivid.elmslie.core.plot.toCachedPlot
-import money.vivid.elmslie.core.testutil.model.Command
+import money.vivid.elmslie.core.testutil.model.Instruction
 import money.vivid.elmslie.core.testutil.model.Effect
 import money.vivid.elmslie.core.testutil.model.Event
 import money.vivid.elmslie.core.testutil.model.State
@@ -34,7 +33,7 @@ class EffectCachingElmStoreTest {
     @BeforeTest
     fun beforeEach() {
         val testDispatcher = StandardTestDispatcher()
-        ElmslieConfig.elmDispatcher = testDispatcher
+        TussaudConfig.elmDispatcher = testDispatcher
         Dispatchers.setMain(testDispatcher)
     }
 
@@ -46,8 +45,8 @@ class EffectCachingElmStoreTest {
     @Test
     fun `Should collect effects which are emitted before collecting flow`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects { +Effect(value = event.value) }
@@ -72,8 +71,8 @@ class EffectCachingElmStoreTest {
     @Test
     fun `Should collect effects which are emitted before collecting flow and after`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects { +Effect(value = event.value) }
@@ -102,8 +101,8 @@ class EffectCachingElmStoreTest {
     @Test
     fun `Should emit effects from cache only for the first subscriber`() = runTest {
         val plot = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects { +Effect(value = event.value) }
@@ -132,8 +131,8 @@ class EffectCachingElmStoreTest {
     @Test
     fun `Should cache effects if there is no left collectors`() = runTest {
         val store = plot(
-            scheme = object : ElmScheme<State, Event, Effect, Command>() {
-                override fun SchemePartBuilder<State, Effect, Command>.reduce(
+            scheme = object : ElmScheme<State, Event, Effect, Instruction>() {
+                override fun SchemePartBuilder<State, Effect, Instruction>.reduce(
                     event: Event
                 ) {
                     effects { +Effect(value = event.value) }
@@ -156,7 +155,7 @@ class EffectCachingElmStoreTest {
     }
 
     private fun plot(
-        scheme: ElmScheme<State, Event, Effect, Command> = NoOpScheme(),
-        performer: Performer<Command, Event> = NoOpPerformer(),
+        scheme: ElmScheme<State, Event, Effect, Instruction> = NoOpScheme(),
+        performer: Performer<Instruction, Event> = NoOpPerformer(),
     ) = ElmPlot(scheme, performer)
 }
