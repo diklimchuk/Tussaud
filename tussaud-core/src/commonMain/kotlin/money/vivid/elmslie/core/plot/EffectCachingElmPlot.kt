@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import money.vivid.elmslie.core.ElmScope
+import money.vivid.elmslie.core.config.TussaudConfig
 
 /**
  * Caches effects until there is at least one collector.
@@ -24,7 +25,10 @@ class EffectCachingElmPlot<State : Any, Event : Any, Effect : Any>(
     private val internalPlot: Plot<State, Event, Effect>
 ) : Plot<State, Event, Effect> by internalPlot {
 
-    private val plot = CoroutinesElmPlot(internalPlot)
+    private val plot = CoroutinesElmPlot(
+        internalPlot,
+        dispatcher = TussaudConfig.elmDispatcher,
+    )
     private val effectsMutex = Mutex()
     private val effectsCache = mutableListOf<Effect>()
     private val effectsFlow = MutableSharedFlow<Effect>()

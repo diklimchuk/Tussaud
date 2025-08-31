@@ -21,9 +21,12 @@ class ElmRenderer<State : Any, Effect : Any>(
     private val lifecycle: Lifecycle,
 ) {
 
-    private val plot = CoroutinesElmPlot(internalPlot)
-    private val logger = TussaudConfig.logger
     private val elmDispatcher: CoroutineDispatcher = TussaudConfig.elmDispatcher
+    private val plot = CoroutinesElmPlot(
+        plot = internalPlot,
+        dispatcher = elmDispatcher
+    )
+    private val logger = TussaudConfig.logger
     private val canRender
         get() = lifecycle.currentState.isAtLeast(STARTED)
 

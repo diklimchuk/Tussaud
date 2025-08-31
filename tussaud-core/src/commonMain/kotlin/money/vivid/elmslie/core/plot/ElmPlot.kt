@@ -1,5 +1,8 @@
 package money.vivid.elmslie.core.plot
 
+import co.touchlab.stately.collections.ConcurrentMutableMap
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -7,7 +10,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
@@ -22,11 +27,72 @@ import money.vivid.elmslie.core.config.TussaudConfig
 import money.vivid.elmslie.core.utils.resolvePlotKey
 import kotlin.concurrent.Volatile
 
-class SingleDispatcherSchemeElmPlot<State : Any, Event : Any, Effect : Any>(
-    private val plot: Plot<State, Event, Effect>,
-    dispatcher: CoroutineDispatcher = TussaudConfig.elmDispatcher,
-) : Plot<State, Event, Effect> by plot {
+/**
+ * Emits [State]s and [Effect]s on a single dispatcher.
+ */
+//class SingleDispatcherElmPlot<State : Any, Event : Any, Effect : Any>(
+//    private val plot: Plot<State, Event, Effect>,
+//    dispatcher: CoroutineDispatcher = TussaudConfig.elmDispatcher,
+//) : Plot<State, Event, Effect> by plot {
+//
+//    private val scope = CoroutineScope(
+//        context = dispatcher +
+//                SupervisorJob() +
+//                CoroutineExceptionHandler { context, exception ->
+//                    TussaudConfig.logger.fatal("Unhandled error: $exception")
+//                } +
+//                CoroutineName("${key}SingleDispatcherWrapperPlot")
+//    )
+//
+//    private val stateObservers = ConcurrentMutableMap<PlotStateObserver<State>, PlotStateObserver<State>>()
+//    private val effectObservers = ConcurrentMutableMap<PlotEffectObserver<Effect>, PlotEffectObserver<Effect>>()
+//
+//    override fun addStateObserver(observer: PlotStateObserver<State>) {
+//        val observerWrapper = object : PlotStateObserver<State> {
+//            override fun onStateChanged(state: State?) {
+//                scope.launch {
+//                    observer.onStateChanged(state)
+//                }
+//            }
+//        }
+//        plot.addStateObserver(observerWrapper)
+//        stateObservers[observer] = observerWrapper
+//    }
+//
+//    override fun removeStateObserver(observer: PlotStateObserver<State>) {
+//        val observerWrapper = stateObservers[observer] ?: return
+//        stateObservers.remove(observer)
+//        plot.removeStateObserver(observerWrapper)
+//    }
+//
+//    override fun addEffectObserver(observer: PlotEffectObserver<Effect>) {
+//        val observerWrapper = object : PlotEffectObserver<Effect> {
+//            override fun onEffectEmitted(effect: Effect) {
+//                scope.launch {
+//                    observer.onEffectEmitted(effect)
+//                }
+//            }
+//        }
+//        plot.addEffectObserver(observerWrapper)
+//        effectObservers[observer] = observerWrapper
+//    }
+//
+//    override fun removeEffectObserver(observer: PlotEffectObserver<Effect>) {
+//        val observerWrapper = effectObservers[observer] ?: return
+//        effectObservers.remove(observer)
+//        plot.removeEffectObserver(observerWrapper)
+//    }
+//
+//    override fun accept(event: Event): Pair<State?, List<Effect>> {
+//            plot.accept(event)
+//        }
+//    }
+//}
 
+class CoroutinesElmPlot<State : Any, Event : Any, Effect : Any>(
+    plot: Plot<State, Event, Effect>,
+    dispatcher: CoroutineDispatcher = TussaudConfig.elmDispatcher,
+) : Plot<State, Event, Effect> by plot, PlotStateObserver<State>, PlotEffectObserver<Effect> {
     private val scope = CoroutineScope(
         context = dispatcher +
                 SupervisorJob() +
@@ -35,35 +101,14 @@ class SingleDispatcherSchemeElmPlot<State : Any, Event : Any, Effect : Any>(
                 } +
                 CoroutineName("${key}SingleDispatcherWrapperPlot")
     )
-
-    override fun addStateObserver(observer: PlotStateObserver<State>) {
-        plot.addStateObserver(object : PlotStateObserver<State> {
-            override fun onStateChanged(state: State?) {
-                scope.launch {
-                    observer.onStateChanged(state)
-                }
-            }
-        })
-    }
-
-    override fun addEffectObserver(observer: PlotEffectObserver<Effect>) {
-        plot.addEffectObserver(object : PlotEffectObserver<Effect> {
-            override fun onEffectEmitted(effect: Effect) {
-                scope.launch {
-                    observer.onEffectEmitted(effect)
-                }
-            }
-        })
-    }
-}
-
-class CoroutinesElmPlot<State : Any, Event : Any, Effect : Any>(
-    plot: Plot<State, Event, Effect>
-) : Plot<State, Event, Effect> by plot, PlotStateObserver<State>, PlotEffectObserver<Effect> {
     private val internalStates = MutableStateFlow(currentState)
     val states = internalStates.filterNotNull()
     val nullableStates = internalStates.asStateFlow()
-    private val internalEffects = MutableStateFlow<Effect?>(null)
+    private val internalEffects = MutableSharedFlow<Effect?>(
+        replay = 0,
+        extraBufferCapacity = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.SUSPEND
+    )
     val effects = internalEffects
         .filterNotNull()
 
@@ -77,7 +122,9 @@ class CoroutinesElmPlot<State : Any, Event : Any, Effect : Any>(
     }
 
     override fun onEffectEmitted(effect: Effect) {
-        internalEffects.value = effect
+        scope.launch {
+            internalEffects.emit(effect)
+        }
     }
 
     override fun stop() {
@@ -106,12 +153,10 @@ class CoroutinesElmPlot<State : Any, Event : Any, Effect : Any>(
 
 
 @Suppress("TooGenericExceptionCaught")
-@OptIn(ExperimentalCoroutinesApi::class)
 class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
     private val scheme: ElmScheme<State, Event, Effect, Instruction>,
     private val performer: Performer<Instruction, Event>,
     override val key: String = resolvePlotKey(scheme),
-    private val performerResultDispatcher: CoroutineDispatcher = TussaudConfig.elmDispatcher,
 ) : Plot<State, Event, Effect> {
 
     private val logger = TussaudConfig.logger
@@ -119,6 +164,9 @@ class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
     /** Store's scope. Active for the lifetime of store. */
     private val scope = ElmScope("${key}Scope")
 
+    // It's probably possible to later make this lock optional to make performance of plot better
+    // in an environment where all plots run on the same single threaded dispatcher
+    private val lock = SynchronizedObject()
     private val stateObservers = mutableListOf<PlotStateObserver<State>>()
 
     @Volatile
@@ -133,19 +181,27 @@ class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
     override fun requireState(): State = currentState ?: error("State is not defined yet")
 
     override fun addStateObserver(observer: PlotStateObserver<State>) {
-        stateObservers.add(observer)
+        synchronized(lock) {
+            stateObservers.add(observer)
+        }
     }
 
     override fun removeStateObserver(observer: PlotStateObserver<State>) {
-        stateObservers.remove(observer)
+        synchronized(lock) {
+            stateObservers.remove(observer)
+        }
     }
 
     override fun addEffectObserver(observer: PlotEffectObserver<Effect>) {
-        effectObservers.add(observer)
+        synchronized(lock) {
+            effectObservers.add(observer)
+        }
     }
 
     override fun removeEffectObserver(observer: PlotEffectObserver<Effect>) {
-        effectObservers.add(observer)
+        synchronized(lock) {
+            effectObservers.add(observer)
+        }
     }
 
     inline fun <reified ActualEffect : Effect> acceptWithResult(
@@ -159,17 +215,19 @@ class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
     }
 
     override fun accept(event: Event): Pair<State?, List<Effect>> {
-        try {
-            val oldState = currentState
-            logger.debug(message = "New event: $event", tag = key)
-            val (state, effects, commands) = scheme.reduce(oldState, event)
-            currentState = state
-            effects.forEach { effect -> dispatchEffect(effect) }
-            commands.forEach { executeCommand(it) }
-            return state to effects
-        } catch (t: Throwable) {
-            logger.fatal(message = "You must handle all errors inside reducer", tag = key, error = t)
-            return currentState to emptyList()
+        synchronized(lock) {
+            try {
+                val oldState = currentState
+                logger.debug(message = "New event: $event", tag = key)
+                val (state, effects, commands) = scheme.reduce(oldState, event)
+                currentState = state
+                effects.forEach { effect -> dispatchEffect(effect) }
+                commands.forEach { executeCommand(it) }
+                return state to effects
+            } catch (t: Throwable) {
+                logger.fatal(message = "You must handle all errors inside reducer", tag = key, error = t)
+                return currentState to emptyList()
+            }
         }
     }
 
@@ -196,7 +254,6 @@ class ElmPlot<State : Any, Event : Any, Effect : Any, Instruction : Any>(
                         error = throwable,
                     )
                 }
-                .flowOn(performerResultDispatcher)
                 .collect { accept(it) }
         }
     }

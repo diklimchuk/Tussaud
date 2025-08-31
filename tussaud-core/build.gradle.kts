@@ -17,6 +17,7 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.coroutinesCore)
                 implementation(libs.atomicfu)
+                implementation(libs.stately.concurrent.collections)
             }
         }
         val commonTest by getting {
