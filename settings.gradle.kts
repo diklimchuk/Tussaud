@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     versionCatalogs.create("libs").from(files("../Build-logic/libs.versions.toml"))
 }
 
-rootProject.name = "Elmslie"
+rootProject.name = "Tussaud"
 
 include(":tussaud-android")
 include(":tussaud-core")

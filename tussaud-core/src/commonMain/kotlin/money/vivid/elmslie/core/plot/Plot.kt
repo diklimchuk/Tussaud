@@ -1,15 +1,5 @@
 package money.vivid.elmslie.core.plot
 
-import kotlin.reflect.KClass
-
-interface PlotStateObserver<State : Any> {
-    fun onStateChanged(state: State?)
-}
-
-interface PlotEffectObserver<Effect : Any> {
-    fun onEffectEmitted(effect: Effect)
-}
-
 interface Plot<State : Any, Event : Any, Effect : Any> {
 
     val key: String
