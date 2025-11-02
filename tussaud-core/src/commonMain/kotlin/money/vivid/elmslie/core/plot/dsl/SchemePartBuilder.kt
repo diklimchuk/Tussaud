@@ -18,19 +18,19 @@ open class SchemePartBuilder<State : Any, Effect : Any, Instruction : Any>(
     val state
         get() = currentState ?: error("State is not defined yet")
 
-    fun nullableState(update: State?.() -> State?) {
+    fun nullableState(update: State?.() -> State?) = apply {
         currentState = currentState.update()
     }
 
-    fun state(update: State.() -> State?) {
+    fun state(update: State.() -> State?) = apply {
         currentState = state.update()
     }
 
-    fun instructions(update: OperationsBuilder<Instruction>.() -> Unit) {
+    fun operations(update: OperationsBuilder<Instruction>.() -> Unit) = apply {
         instructionsBuilder.update()
     }
 
-    fun effects(update: OperationsBuilder<Effect>.() -> Unit) {
+    fun effects(update: OperationsBuilder<Effect>.() -> Unit) = apply {
         effectsBuilder.update()
     }
 

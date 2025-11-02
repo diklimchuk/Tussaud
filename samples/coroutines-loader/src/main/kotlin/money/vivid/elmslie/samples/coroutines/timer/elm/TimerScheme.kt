@@ -19,17 +19,17 @@ internal object TimerScheme : ElmScheme<State, Event, Effect, Instruction>() {
                         generatedId = UUID.randomUUID().toString()
                     )
                 }
-                instructions { +Instruction.Start }
+                operations { +Instruction.Start }
             }
 
             is Input.Start -> {
                 state { copy(isStarted = true) }
-                instructions { +Instruction.Start }
+                operations { +Instruction.Start }
             }
 
             is Input.Stop -> {
                 state { copy(isStarted = false) }
-                instructions { +Instruction.Stop }
+                operations { +Instruction.Stop }
             }
 
             is Result.OnTimeTick -> {

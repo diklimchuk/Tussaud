@@ -1,7 +1,5 @@
-package money.vivid.elmslie.core.plot
+package money.vivid.elmslie.core.plot.methodical
 
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -9,17 +7,32 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import money.vivid.elmslie.core.config.TussaudConfig
+import money.vivid.elmslie.core.plot.SchemePart
+import money.vivid.elmslie.core.plot.dsl.SchemePartBuilder
 import money.vivid.elmslie.core.switcher.Switcher
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
-// TODO: Think about separating an interface for it
-abstract class Performer<Instruction : Any, Result : Any> {
+class MethodicalElmScheme<State : Any, Effect : Any, Instruction : (Resources) -> Any, Resources, Event : (SchemePartBuilder<State, Effect, Instruction>) -> SchemePartBuilder<State, Effect, Instruction>> {
+
+    fun reduce(state: State?, event: Event): SchemePart<State, Effect, Instruction> {
+        return event(SchemePartBuilder(state)).build()
+    }
+}
+
+
+// TODO: Think about the order of generics (probably in the entire library)
+class MethodicalPerformer<Instruction : (InstructionDependencies) -> Flow<Result>, InstructionDependencies : Any, Result : Any> {
 
     private val switchers = mutableMapOf<Any, Switcher>()
     private val mutex = Mutex()
 
     /** Executes a command. This method is performed on the [TussaudConfig.elmDispatcher]. */
-    abstract fun execute(instruction: Instruction): Flow<Result>
+    fun execute(dependencies: InstructionDependencies, instruction: Instruction): Flow<Result> {
+        return instruction(dependencies)
+    }
 
+    // TODO: Think about how to provide this to instructions
     protected fun <T : Any> Flow<T>.mapEvents(
         onResult: (T) -> Result? = { null },
         onError: (error: Throwable) -> Result? = { null },

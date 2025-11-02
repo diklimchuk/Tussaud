@@ -71,7 +71,7 @@ class ElmStoreTest {
                     event: Event
                 ) {
                     state { State(value = state.value + 1) }
-                    instructions { +Instruction() }
+                    operations { +Instruction() }
                 }
             },
             performer = performer,
@@ -294,7 +294,7 @@ class ElmStoreTest {
                     event: Event
                 ) {
                     state { copy(value = event.value) }
-                    instructions { +Instruction(event.value - 1).takeIf { event.value > 0 } }
+                    operations { +Instruction(event.value - 1).takeIf { event.value > 0 } }
                 }
             },
             performer = performer,

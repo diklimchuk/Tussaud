@@ -25,7 +25,7 @@ object BasicScreenScheme :
     override fun SchemePartBuilder<TestState, TestEffect, TestInstruction>.internal(event: TestScreenEvent.Internal) =
         when (event) {
             is TestScreenEvent.Internal.One ->
-                instructions {
+                operations {
                     +TestInstruction.One
                     +TestInstruction.Two
                 }
@@ -49,7 +49,7 @@ object PlainScreenDslScheme : ElmScheme<TestState, TestScreenEvent, TestEffect, 
     private fun SchemePartBuilder<TestState, TestEffect, TestInstruction>.reduce(event: TestScreenEvent.Internal) =
         when (event) {
             is TestScreenEvent.Internal.One ->
-                instructions {
+                operations {
                     +TestInstruction.One
                     +TestInstruction.Two
                 }

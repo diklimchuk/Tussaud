@@ -18,7 +18,7 @@ private object BasicDslScheme : ElmScheme<TestState, TestEvent, TestEffect, Test
 
             is TestEvent.Two -> effects { +TestEffect.One }
             is TestEvent.Three ->
-                instructions {
+                operations {
                     +TestInstruction.Two
                     +TestInstruction.One
                 }
@@ -26,7 +26,7 @@ private object BasicDslScheme : ElmScheme<TestState, TestEvent, TestEffect, Test
             is TestEvent.Four ->
                 if (event.flag) {
                     state { copy(one = 1) }
-                    instructions { +TestInstruction.One }
+                    operations { +TestInstruction.One }
                     effects { +TestEffect.One }
                 } else {
                     state { copy(one = state.two, two = state.one) }
@@ -35,7 +35,7 @@ private object BasicDslScheme : ElmScheme<TestState, TestEvent, TestEffect, Test
 
             is TestEvent.Five -> applyDiff()
             is TestEvent.Six -> {
-                instructions { +TestInstruction.One.takeIf { event.flag } }
+                operations { +TestInstruction.One.takeIf { event.flag } }
             }
         }
     }
